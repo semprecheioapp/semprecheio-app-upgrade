@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,14 @@ import { useAuth } from "@/lib/auth";
 import { MessageCircle, Globe, Plus, Edit, Trash2, Power, PowerOff, Key } from "lucide-react";
 import type { Connection } from "@shared/schema";
 
+interface ConnectionForm {
+  instance: string;
+  token: string;
+  host: string;
+  isActive: boolean;
+  clientId: string;
+}
+
 export default function WhatsAppChannels() {
   const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
@@ -23,6 +30,22 @@ export default function WhatsAppChannels() {
     host: "",
     isActive: true,
     clientId: "",
+  });
+
+  const [newConnection, setNewConnection] = useState<ConnectionForm>({
+    instance: '',
+    token: '',
+    host: '',
+    isActive: true,
+    clientId: '' // Initialize with empty string
+  });
+
+  const [editingConnection, setEditingConnection] = useState<ConnectionForm>({
+    instance: '',
+    token: '',
+    host: '',
+    isActive: false,
+    clientId: '' // Initialize with empty string
   });
 
   const { toast } = useToast();
@@ -148,6 +171,15 @@ export default function WhatsAppChannels() {
       });
     },
   });
+
+  useEffect(() => {
+    if (user) {
+      // Assuming user has a clientId property or we need to fetch it
+      const clientId = user.id; // Use user.id as clientId for now
+      setNewConnection(prev => ({ ...prev, clientId }));
+      setEditingConnection(prev => ({ ...prev, clientId }));
+    }
+  }, [user]);
 
   const resetForm = () => {
     setFormData({
