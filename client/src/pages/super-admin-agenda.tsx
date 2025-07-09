@@ -52,9 +52,9 @@ interface AgendaEvent {
   date: number;
   status: string;
   duration: number;
-  startTime?: string;
-  endTime?: string;
-  scheduledAt?: Date;
+  startTime: string;
+  endTime: string;
+  scheduledAt: Date;
   client?: string;
   professional?: string;
   service?: string;
@@ -1286,11 +1286,17 @@ export default function SuperAdminAgenda({ isCompanyAdmin = false, companyId }: 
                       year: appointmentYear,
                       time: `${appointmentHour.toString().padStart(2, '0')}:${appointmentMinutes.toString().padStart(2, '0')}`,
                       customerName: appointment.customerName || customer?.name || 'Cliente não encontrado',
+                      customerPhone: customer?.phone || '',
                       professionalName: professional?.name || 'Profissional não encontrado',
+                      professionalId: appointment.professionalId,
                       serviceName: service?.name || 'Serviço não encontrado',
+                      serviceId: appointment.serviceId,
                       color: professional?.color || '#A78BFA',
                       status: appointment.status,
-                      duration: appointment.duration || 60
+                      duration: appointment.duration || 60,
+                      startTime: appointment.startTime || `${appointmentHour.toString().padStart(2, '0')}:${appointmentMinutes.toString().padStart(2, '0')}`,
+                      endTime: appointment.endTime || `${(appointmentHour + 1).toString().padStart(2, '0')}:${appointmentMinutes.toString().padStart(2, '0')}`,
+                      scheduledAt: appointment.scheduledAt || new Date()
                     };
                   }).filter((event: any) =>
                     event.month === currentMonth &&
@@ -1395,11 +1401,17 @@ export default function SuperAdminAgenda({ isCompanyAdmin = false, companyId }: 
         year: appointmentYear,
         time: `${appointmentHour.toString().padStart(2, '0')}:${appointmentMinutes.toString().padStart(2, '0')}`,
         customerName: appointment.customerName || customer?.name || 'Cliente não encontrado',
+        customerPhone: customer?.phone || '',
         professionalName: professional?.name || 'Profissional não encontrado',
+        professionalId: appointment.professionalId,
         serviceName: service?.name || 'Serviço não encontrado',
+        serviceId: appointment.serviceId,
         color: professional?.color || '#A78BFA',
         status: appointment.status,
-        duration: appointment.duration || 60
+        duration: appointment.duration || 60,
+        startTime: appointment.startTime || `${appointmentHour.toString().padStart(2, '0')}:${appointmentMinutes.toString().padStart(2, '0')}`,
+        endTime: appointment.endTime || `${(appointmentHour + 1).toString().padStart(2, '0')}:${appointmentMinutes.toString().padStart(2, '0')}`,
+        scheduledAt: appointment.scheduledAt || new Date()
       };
     }).filter((event: any) =>
       event.month === currentMonth &&
@@ -1580,15 +1592,17 @@ export default function SuperAdminAgenda({ isCompanyAdmin = false, companyId }: 
         year: appointmentYear,
         time: appointment.startTime?.slice(0, 5) || `${appointmentHour.toString().padStart(2, '0')}:${appointmentDate.getMinutes().toString().padStart(2, '0')}`,
         customerName: appointment.customerName || customer?.name || 'Cliente não encontrado',
+        customerPhone: customer?.phone || '',
         professionalName: professional?.name || 'Profissional não encontrado',
+        professionalId: appointment.professionalId,
         serviceName: service?.name || 'Serviço não encontrado',
+        serviceId: appointment.serviceId,
         color: professional?.color || '#A78BFA',
         status: appointment.status,
         duration: appointment.duration || 60,
-        startTime: appointment.startTime,
-        endTime: appointment.endTime,
-        serviceId: appointment.serviceId,
-        professionalId: appointment.professionalId
+        startTime: appointment.startTime || `${appointmentHour.toString().padStart(2, '0')}:${appointmentDate.getMinutes().toString().padStart(2, '0')}`,
+        endTime: appointment.endTime || `${(appointmentHour + 1).toString().padStart(2, '0')}:${appointmentDate.getMinutes().toString().padStart(2, '0')}`,
+        scheduledAt: appointment.scheduledAt || new Date()
       };
     }).filter((event: any) => event.month === currentMonth && event.year === currentYear) : [];
     
@@ -1960,7 +1974,7 @@ export default function SuperAdminAgenda({ isCompanyAdmin = false, companyId }: 
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">Todas as empresas</SelectItem>
-                          {clientsData?.map((client: any) => (
+                          {(clientsData as any[])?.map((client: any) => (
                             <SelectItem key={client.id} value={client.id}>
                               {client.name} ({client.email})
                             </SelectItem>
@@ -1978,7 +1992,7 @@ export default function SuperAdminAgenda({ isCompanyAdmin = false, companyId }: 
                           placeholder="Digite o email da empresa..."
                           onChange={(e) => {
                             const email = e.target.value.toLowerCase();
-                            const client = clientsData?.find((c: any) =>
+                            const client = (clientsData as any[])?.find((c: any) =>
                               c.email.toLowerCase().includes(email)
                             );
                             if (client && email.length > 2) {
@@ -2140,7 +2154,7 @@ export default function SuperAdminAgenda({ isCompanyAdmin = false, companyId }: 
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">Todas as empresas</SelectItem>
-                          {clientsData?.map((client: any) => (
+                          {(clientsData as any[])?.map((client: any) => (
                             <SelectItem key={client.id} value={client.id}>
                               {client.name} ({client.email})
                             </SelectItem>
@@ -2158,7 +2172,7 @@ export default function SuperAdminAgenda({ isCompanyAdmin = false, companyId }: 
                           placeholder="Digite o email da empresa..."
                           onChange={(e) => {
                             const email = e.target.value.toLowerCase();
-                            const client = clientsData?.find((c: any) =>
+                            const client = (clientsData as any[])?.find((c: any) =>
                               c.email.toLowerCase().includes(email)
                             );
                             if (client && email.length > 2) {
@@ -2327,7 +2341,7 @@ export default function SuperAdminAgenda({ isCompanyAdmin = false, companyId }: 
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">Todas as empresas</SelectItem>
-                          {clientsData?.map((client: any) => (
+                          {(clientsData as any[])?.map((client: any) => (
                             <SelectItem key={client.id} value={client.id}>
                               {client.name} ({client.email})
                             </SelectItem>
@@ -2345,7 +2359,7 @@ export default function SuperAdminAgenda({ isCompanyAdmin = false, companyId }: 
                           placeholder="Digite o email da empresa..."
                           onChange={(e) => {
                             const email = e.target.value.toLowerCase();
-                            const client = clientsData?.find((c: any) =>
+                            const client = (clientsData as any[])?.find((c: any) =>
                               c.email.toLowerCase().includes(email)
                             );
                             if (client && email.length > 2) {
@@ -2507,7 +2521,7 @@ export default function SuperAdminAgenda({ isCompanyAdmin = false, companyId }: 
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">Todas as empresas</SelectItem>
-                          {clientsData?.map((client: any) => (
+                          {(clientsData as any[])?.map((client: any) => (
                             <SelectItem key={client.id} value={client.id}>
                               {client.name} ({client.email})
                             </SelectItem>
@@ -2525,7 +2539,7 @@ export default function SuperAdminAgenda({ isCompanyAdmin = false, companyId }: 
                           placeholder="Digite o email da empresa..."
                           onChange={(e) => {
                             const email = e.target.value.toLowerCase();
-                            const client = clientsData?.find((c: any) =>
+                            const client = (clientsData as any[])?.find((c: any) =>
                               c.email.toLowerCase().includes(email)
                             );
                             if (client && email.length > 2) {
@@ -2918,7 +2932,7 @@ export default function SuperAdminAgenda({ isCompanyAdmin = false, companyId }: 
                                 .sort(([,a], [,b]) => (b as number) - (a as number))
                                 .slice(0, 5)
                                 .map(([specialty, count], index) => {
-                                  const maxCount = Math.max(...Object.values(dashboardData.appointmentsBySpecialty));
+                                  const maxCount = Math.max(...Object.values(dashboardData.appointmentsBySpecialty as Record<string, number>));
                                   const percentage = ((count as number) / maxCount) * 100;
                                   const colors = ['bg-blue-600', 'bg-green-600', 'bg-purple-600', 'bg-orange-600', 'bg-red-600'];
 
@@ -2926,7 +2940,7 @@ export default function SuperAdminAgenda({ isCompanyAdmin = false, companyId }: 
                                     <div key={specialty}>
                                       <div className="flex items-center justify-between">
                                         <span className="text-sm text-gray-600">{specialty}</span>
-                                        <span className="text-sm font-medium">{count}</span>
+                                        <span className="text-sm font-medium">{count as number}</span>
                                       </div>
                                       <div className="w-full bg-gray-200 rounded-full h-2">
                                         <div
@@ -3438,7 +3452,7 @@ export default function SuperAdminAgenda({ isCompanyAdmin = false, companyId }: 
                   <SelectValue placeholder="Selecione uma empresa..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {clientsData?.map((client: any) => (
+                  {(clientsData as any[])?.map((client: any) => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name}
                     </SelectItem>

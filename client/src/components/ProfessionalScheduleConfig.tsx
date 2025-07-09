@@ -119,7 +119,6 @@ export default function ProfessionalScheduleConfig({ clientId }: ProfessionalSch
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/professional-availability"] });
-      setShowModal(false);
       resetForm();
       toast({ title: "Horário atualizado com sucesso!" });
     },

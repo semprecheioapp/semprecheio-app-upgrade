@@ -38,10 +38,10 @@ class LimitsValidator {
       }
 
       const limits: ClientLimits = {
-        maxUsers: client.maxUsers || 5,
-        maxAppointments: client.maxAppointments || 100,
-        maxStorage: client.maxStorage || 1,
-        plan: client.plan || 'basic'
+        maxUsers: (client as any).maxUsers || 5,
+        maxAppointments: (client as any).maxAppointments || 100,
+        maxStorage: (client as any).maxStorage || 1,
+        plan: (client as any).plan || 'basic'
       };
 
       const usage = await this.getCurrentUsage(clientId);
@@ -105,8 +105,7 @@ class LimitsValidator {
       
       const appointments = await storage.listAppointments({
         clientId,
-        startDate: startOfMonth,
-        endDate: endOfMonth
+        date: startOfMonth
       });
       const currentAppointments = appointments.length;
 
@@ -183,10 +182,10 @@ class LimitsValidator {
       if (!client) return null;
 
       const limits: ClientLimits = {
-        maxUsers: client.maxUsers || 5,
-        maxAppointments: client.maxAppointments || 100,
-        maxStorage: client.maxStorage || 1,
-        plan: client.plan || 'basic'
+        maxUsers: (client as any).maxUsers || 5,
+        maxAppointments: (client as any).maxAppointments || 100,
+        maxStorage: (client as any).maxStorage || 1,
+        plan: (client as any).plan || 'basic'
       };
 
       const usage = await this.getCurrentUsage(clientId);

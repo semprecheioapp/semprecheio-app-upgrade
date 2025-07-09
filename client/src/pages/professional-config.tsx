@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,7 +56,7 @@ export default function ProfessionalConfig() {
   // Buscar usuário logado
   const { data: user } = useQuery({
     queryKey: ["/api/auth/user"],
-  });
+  }) as { data: any };
 
   // Buscar profissionais
   const { data: professionals = [] } = useQuery<Professional[]>({

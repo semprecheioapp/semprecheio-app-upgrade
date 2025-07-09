@@ -8,7 +8,6 @@ import { auditMiddleware, logAudit } from "./middleware/audit";
 import { checkUserLimits, checkAppointmentLimits, getClientUsageStats } from "./middleware/limits";
 import { errorHandler, notFoundHandler, asyncHandler, ApiError } from "./middleware/error-handler";
 import { ClientService } from "./services/client-service";
-import { asaasService } from "./asaas-service";
 
 interface AuthRequest extends Request {
   user?: any;
@@ -369,7 +368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Calcular receita baseada nos agendamentos (simulada já que não temos integração Asaas real ainda)
+      // Calcular receita baseada nos agendamentos (simulada)
       const averageServicePrice = 150; // Valor médio simulado por consulta
 
       // Debug: verificar status dos agendamentos
@@ -1589,31 +1588,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Plano não encontrado" });
       }
 
-      // Criar cliente no Asaas
-      const asaasCustomer = await asaasService.createCustomer(customerData);
-
-      // Criar assinatura no Asaas
+      // Criar assinatura local (sem integração de pagamento por enquanto)
       const nextDueDate = new Date();
       nextDueDate.setMonth(nextDueDate.getMonth() + 1);
 
-      const asaasSubscription = await asaasService.createSubscription({
-        customer: asaasCustomer.id!,
-        billingType,
-        value: plan.price,
-        nextDueDate: nextDueDate.toISOString().split('T')[0],
-        cycle: plan.billingCycle === 'monthly' ? 'MONTHLY' : 'YEARLY',
-        description: `Assinatura ${plan.name} - SempreCheioApp`
-      });
-
-      // Criar assinatura local
       const subscription = await storage.createSubscription({
         clientId,
-        planId: Number(planId), // Ensure planId is a number
+        planId: Number(planId),
         status: 'ACTIVE',
         currentPeriodStart: new Date(),
         currentPeriodEnd: nextDueDate,
-        asaasSubscriptionId: asaasSubscription.id,
-        asaasCustomerId: asaasCustomer.id!,
         cancelAtPeriodEnd: false,
         trialStart: undefined,
         trialEnd: undefined,
@@ -1673,63 +1657,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Asaas webhook endpoint
-  app.post("/api/webhooks/asaas", async (req: Request, res: Response) => {
-    try {
-      const { event, payment } = req.body;
 
-      console.log('Asaas webhook received:', event, payment);
-
-      // Processar diferentes tipos de eventos
-      switch (event) {
-        case 'PAYMENT_RECEIVED':
-          // Atualizar status da fatura
-          const invoice = await storage.listInvoices().then(invoices =>
-            invoices.find(inv => inv.asaasChargeId === payment.id)
-          );
-
-          if (invoice) {
-            await storage.updateInvoice(invoice.id, {
-              status: 'RECEIVED',
-              paidAt: new Date(payment.dateCreated)
-            });
-
-            // Criar registro de pagamento
-            await storage.createPayment({
-              clientId: invoice.clientId,
-              invoiceId: invoice.id,
-              amount: payment.value,
-              currency: 'BRL',
-              status: 'RECEIVED',
-              paymentMethod: payment.billingType,
-              asaasPaymentId: payment.id,
-              processedAt: new Date(payment.dateCreated),
-              asaasTransactionReceiptUrl: '',
-              failureReason: ''
-            });
-          }
-          break;
-
-        case 'PAYMENT_OVERDUE':
-          // Marcar fatura como vencida
-          const overdueInvoice = await storage.listInvoices().then(invoices =>
-            invoices.find(inv => inv.asaasChargeId === payment.id)
-          );
-
-          if (overdueInvoice) {
-            await storage.updateInvoice(overdueInvoice.id, {
-              status: 'OVERDUE'
-            });
-          }
-          break;
-      }
-
-      res.status(200).json({ received: true });
-    } catch (error) {
-      console.error("Error processing Asaas webhook:", error);
-      res.status(500).json({ message: "Erro ao processar webhook" });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;

@@ -85,24 +85,7 @@ export class MemStorage implements IStorage {
     this.users.set(admin.id, admin);
   }
 
-  private initializeTestClients() {
-    // Real client data provided by user
-    const clinicaMBK: Client = {
-      id: '165bc915-45bc-423e-ac8f-7a60a3bf9b05',
-      name: 'Clínica MBK',
-      email: 'agenciambkautomac@gmail.com',
-      phone: '556699618890',
-      createdAt: new Date('2025-05-15 08:39:57.684331'),
-      isActive: true,
-      serviceType: 'clinica',
-      whatsappInstanceUrl: 'megacode-MTflBsUXacp',
-      settings: null,
-      assistantId: 'asst_z5VR0QuThXhA9YR9W1RoqL7q',
-      password: 'senha123' // Will be hashed in real implementation
-    };
 
-    this.clients.set(clinicaMBK.id, clinicaMBK);
-  }
 
   private async initializeTestUsers() {
     const hashedPassword = await bcrypt.hash("123456", 10);

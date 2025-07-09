@@ -58,12 +58,13 @@ export default function Agenda() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedProfessional, setSelectedProfessional] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedDay, setSelectedDay] = useState<number>(new Date().getDate());
   const logout = useLogout();
 
   // Fetch real data from API
   const { data: professionalsData = [], isLoading: professionalsLoading } = useQuery({
     queryKey: ['/api/professionals'],
-  });
+  }) as { data: any[], isLoading: boolean };
 
   const { data: specialtiesData = [] } = useQuery({
     queryKey: ['/api/specialties'],
@@ -133,6 +134,21 @@ export default function Agenda() {
       };
     });
   }, [appointmentsData, professionalsData, servicesData, customersData, specialtiesData]);
+
+  // Transform appointments to agenda events
+  const agendaEvents: AgendaEvent[] = useMemo(() => {
+    return appointments.map(apt => ({
+      id: apt.id,
+      time: apt.time,
+      customerName: apt.customerName,
+      professionalName: apt.professionalName,
+      serviceName: apt.serviceName,
+      color: apt.color || '#3B82F6',
+      date: new Date(apt.date).getDate(),
+      status: apt.status,
+      duration: apt.duration || 60
+    }));
+  }, [appointments]);
 
   // Update appointment status
   const updateAppointmentStatus = async (appointmentId: string, newStatus: string) => {

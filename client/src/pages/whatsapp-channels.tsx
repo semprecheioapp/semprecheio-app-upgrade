@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { MessageCircle, Globe, Plus, Edit, Trash2, Power, PowerOff, Key } from "lucide-react";
-import { Connection } from "../shared/schema";
+import type { Connection } from "@shared/schema";
 
 export default function WhatsAppChannels() {
   const [showModal, setShowModal] = useState(false);
