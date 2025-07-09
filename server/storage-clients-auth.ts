@@ -43,7 +43,7 @@ export interface IStorage {
   getClientByWhatsappInstance(whatsappInstanceUrl: string): Promise<Client | undefined>;
   createClient(client: InsertClient): Promise<Client>;
   validateClient(email: string, password: string): Promise<Client | null>;
-  updateClient(id: string, updates: Partial<InsertClient>): Promise<Client | undefined>;
+  updateClient(id: string, updates: Partial<Client>): Promise<Client | undefined>;
   deleteClient(id: string): Promise<void>;
   listClients(): Promise<Client[]>;
 
@@ -693,7 +693,7 @@ export class ClientsAuthStorage implements IStorage {
     return isValid ? client : null;
   }
 
-  async updateClient(id: string, updates: Partial<InsertClient>): Promise<Client | undefined> {
+  async updateClient(id: string, updates: Partial<Client>): Promise<Client | undefined> {
     // Hash password if provided
     const hashedPassword = updates.password ? await bcrypt.hash(updates.password, 10) : undefined;
 
@@ -789,15 +789,16 @@ export class ClientsAuthStorage implements IStorage {
   }
 
   async createProfessional(professional: InsertProfessional): Promise<Professional> {
+    const prof = professional as any;
     const { data, error } = await supabase
       .from('professionals')
       .insert({
-        name: professional.name,
-        email: professional.email,
-        phone: professional.phone,
-        specialty_id: professional.specialtyId,
-        client_id: professional.clientId,
-        is_active: professional.isActive ?? true
+        name: prof.name,
+        email: prof.email,
+        phone: prof.phone,
+        specialty_id: prof.specialtyId,
+        client_id: prof.clientId,
+        is_active: prof.isActive ?? true
       })
       .select()
       .single();
@@ -868,14 +869,15 @@ export class ClientsAuthStorage implements IStorage {
   }
 
   async createSpecialty(specialty: InsertSpecialty): Promise<Specialty> {
+    const spec = specialty as any;
     const { data, error } = await supabase
       .from('specialties')
       .insert({
-        name: specialty.name,
-        description: specialty.description,
-        color: specialty.color || '#3B82F6',
-        service_id: specialty.serviceId,
-        is_active: specialty.isActive ?? true
+        name: spec.name,
+        description: spec.description,
+        color: spec.color || '#3B82F6',
+        service_id: spec.serviceId,
+        is_active: spec.isActive ?? true
       })
       .select()
       .single();
@@ -952,15 +954,16 @@ export class ClientsAuthStorage implements IStorage {
 
   async createService(service: InsertService): Promise<Service> {
     console.log('DEBUG - createService called with:', service);
-    
+    const serv = service as any;
+
     const insertData = {
-      name: service.name,
-      category: service.category,
-      description: service.description,
-      duration: service.duration,
-      price: service.price,
-      client_id: service.clientId,
-      is_active: service.isActive ?? true
+      name: serv.name,
+      category: serv.category,
+      description: serv.description,
+      duration: serv.duration,
+      price: serv.price,
+      client_id: serv.clientId,
+      is_active: serv.isActive ?? true
     };
     
     console.log('DEBUG - insertData for services table:', insertData);
@@ -1747,14 +1750,15 @@ export class ClientsAuthStorage implements IStorage {
   async createProfessionalAvailability(availability: InsertProfessionalAvailability): Promise<ProfessionalAvailability> {
     try {
       console.log("🔍 DEBUG - Dados recebidos no storage:", availability);
+      const avail = availability as any;
 
       const insertData = {
-        professional_id: availability.professionalId,
-        date: availability.date || null,
-        start_time: availability.startTime,
-        end_time: availability.endTime,
-        is_active: availability.isActive !== undefined ? availability.isActive : true,
-        day_of_week: availability.dayOfWeek !== undefined ? availability.dayOfWeek : null,
+        professional_id: avail.professionalId,
+        date: avail.date || null,
+        start_time: avail.startTime,
+        end_time: avail.endTime,
+        is_active: avail.isActive !== undefined ? avail.isActive : true,
+        day_of_week: avail.dayOfWeek !== undefined ? avail.dayOfWeek : null,
       };
 
       console.log("🔍 DEBUG - Dados que serão inseridos no banco:", insertData);

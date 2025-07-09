@@ -249,7 +249,7 @@ export class MemStorage implements IStorage {
     return isValid ? client : null;
   }
 
-  async updateClient(id: string, updates: Partial<InsertClient>): Promise<Client | undefined> {
+  async updateClient(id: string, updates: Partial<Client>): Promise<Client | undefined> {
     const client = this.clients.get(id);
     if (!client) return undefined;
 
