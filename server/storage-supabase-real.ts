@@ -1,42 +1,45 @@
+
 import { supabase } from "./supabase";
 import bcrypt from "bcryptjs";
-import { 
-  type User, 
-  type InsertUser, 
-  type Session, 
-  type Client, 
-  type InsertClient,
-  type Professional,
-  type InsertProfessional,
-  type Specialty,
-  type InsertSpecialty,
-  type Service,
-  type InsertService,
-  type Appointment,
-  type InsertAppointment,
-  type Customer,
-  type InsertCustomer
+import type { 
+  StorageUser, 
+  InsertStorageUser, 
+  StorageSession, 
+  StorageClient, 
+  InsertStorageClient
+} from "./types/storage-types";
+import type {
+  Professional,
+  InsertProfessional,
+  Specialty,
+  InsertSpecialty,
+  Service,
+  InsertService,
+  Appointment,
+  InsertAppointment,
+  Customer,
+  InsertCustomer
 } from "@shared/schema";
 
 export interface IStorage {
   // User operations
-  getUser(id: number): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  validateUser(email: string, password: string): Promise<User | null>;
-  createSession(userId: number, expiresAt: Date): Promise<Session>;
-  getSession(sessionId: string): Promise<Session | undefined>;
+  getUser(id: number): Promise<StorageUser | undefined>;
+  getUserByEmail(email: string): Promise<StorageUser | undefined>;
+  createUser(user: InsertStorageUser): Promise<StorageUser>;
+  validateUser(email: string, password: string): Promise<StorageUser | null>;
+  createSession(userId: number, expiresAt: Date): Promise<StorageSession>;
+  getSession(sessionId: string): Promise<StorageSession | undefined>;
   deleteSession(sessionId: string): Promise<void>;
-  getUserBySessionId(sessionId: string): Promise<User | undefined>;
+  getUserBySessionId(sessionId: string): Promise<StorageUser | undefined>;
   
   // Client operations
-  getClient(id: string): Promise<Client | undefined>;
-  getClientByEmail(email: string): Promise<Client | undefined>;
-  createClient(client: InsertClient): Promise<Client>;
-  validateClient(email: string, password: string): Promise<Client | null>;
-  updateClient(id: string, updates: Partial<InsertClient>): Promise<Client | undefined>;
+  getClient(id: string): Promise<StorageClient | undefined>;
+  getClientByEmail(email: string): Promise<StorageClient | undefined>;
+  createClient(client: InsertStorageClient): Promise<StorageClient>;
+  validateClient(email: string, password: string): Promise<StorageClient | null>;
+  updateClient(id: string, updates: Partial<InsertStorageClient>): Promise<StorageClient | undefined>;
   deleteClient(id: string): Promise<void>;
-  listClients(): Promise<Client[]>;
+  listClients(): Promise<StorageClient[]>;
 
   // Professional operations
   listProfessionals(): Promise<Professional[]>;
@@ -116,7 +119,7 @@ export class SupabaseRealStorage implements IStorage {
   }
 
   // User operations
-  async getUser(id: number): Promise<User | undefined> {
+  async getUser(id: number): Promise<StorageUser | undefined> {
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -124,10 +127,10 @@ export class SupabaseRealStorage implements IStorage {
       .single();
     
     if (error || !data) return undefined;
-    return data as User;
+    return this.mapUserFromSupabase(data);
   }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
+  async getUserByEmail(email: string): Promise<StorageUser | undefined> {
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -135,10 +138,10 @@ export class SupabaseRealStorage implements IStorage {
       .single();
     
     if (error || !data) return undefined;
-    return data as User;
+    return this.mapUserFromSupabase(data);
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async createUser(insertUser: InsertStorageUser): Promise<StorageUser> {
     const hashedPassword = await bcrypt.hash(insertUser.password, 10);
     
     const { data, error } = await supabase
@@ -156,10 +159,10 @@ export class SupabaseRealStorage implements IStorage {
       throw new Error('Failed to create user');
     }
 
-    return data as User;
+    return this.mapUserFromSupabase(data);
   }
 
-  async validateUser(email: string, password: string): Promise<User | null> {
+  async validateUser(email: string, password: string): Promise<StorageUser | null> {
     const user = await this.getUserByEmail(email);
     if (!user) return null;
     
@@ -167,7 +170,7 @@ export class SupabaseRealStorage implements IStorage {
     return isValid ? user : null;
   }
 
-  async createSession(userId: number, expiresAt: Date): Promise<Session> {
+  async createSession(userId: number, expiresAt: Date): Promise<StorageSession> {
     const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     
     const { data, error } = await supabase
@@ -184,15 +187,10 @@ export class SupabaseRealStorage implements IStorage {
       throw new Error('Failed to create session');
     }
 
-    return {
-      id: data.id,
-      userId: data.user_id,
-      expiresAt: new Date(data.expires_at),
-      createdAt: new Date(data.created_at)
-    } as Session;
+    return this.mapSessionFromSupabase(data);
   }
 
-  async getSession(sessionId: string): Promise<Session | undefined> {
+  async getSession(sessionId: string): Promise<StorageSession | undefined> {
     const { data, error } = await supabase
       .from('sessions')
       .select('*')
@@ -201,19 +199,14 @@ export class SupabaseRealStorage implements IStorage {
     
     if (error || !data) return undefined;
     
-    return {
-      id: data.id,
-      userId: data.user_id,
-      expiresAt: new Date(data.expires_at),
-      createdAt: new Date(data.created_at)
-    } as Session;
+    return this.mapSessionFromSupabase(data);
   }
 
   async deleteSession(sessionId: string): Promise<void> {
     await supabase.from('sessions').delete().eq('id', sessionId);
   }
 
-  async getUserBySessionId(sessionId: string): Promise<User | undefined> {
+  async getUserBySessionId(sessionId: string): Promise<StorageUser | undefined> {
     const session = await this.getSession(sessionId);
     if (!session || session.expiresAt < new Date()) {
       if (session) {
@@ -226,7 +219,7 @@ export class SupabaseRealStorage implements IStorage {
   }
 
   // Client operations
-  async getClient(id: string): Promise<Client | undefined> {
+  async getClient(id: string): Promise<StorageClient | undefined> {
     const { data, error } = await supabase
       .from('clients')
       .select('*')
@@ -237,7 +230,7 @@ export class SupabaseRealStorage implements IStorage {
     return this.mapClientFromSupabase(data);
   }
 
-  async getClientByEmail(email: string): Promise<Client | undefined> {
+  async getClientByEmail(email: string): Promise<StorageClient | undefined> {
     const { data, error } = await supabase
       .from('clients')
       .select('*')
@@ -248,7 +241,7 @@ export class SupabaseRealStorage implements IStorage {
     return this.mapClientFromSupabase(data);
   }
 
-  async createClient(insertClient: InsertClient): Promise<Client> {
+  async createClient(insertClient: InsertStorageClient): Promise<StorageClient> {
     const { data, error } = await supabase
       .from('clients')
       .insert({
@@ -272,7 +265,7 @@ export class SupabaseRealStorage implements IStorage {
     return this.mapClientFromSupabase(data);
   }
 
-  async validateClient(email: string, password: string): Promise<Client | null> {
+  async validateClient(email: string, password: string): Promise<StorageClient | null> {
     const client = await this.getClientByEmail(email);
     if (!client || !client.password || !password) return null;
     
@@ -280,20 +273,21 @@ export class SupabaseRealStorage implements IStorage {
     return isValid ? client : null;
   }
 
-  async updateClient(id: string, updates: Partial<InsertClient>): Promise<Client | undefined> {
+  async updateClient(id: string, updates: Partial<InsertStorageClient>): Promise<StorageClient | undefined> {
+    const updateData: any = {};
+    if (updates.name) updateData.name = updates.name;
+    if (updates.email) updateData.email = updates.email;
+    if (updates.phone !== undefined) updateData.phone = updates.phone;
+    if (updates.serviceType) updateData.service_type = updates.serviceType;
+    if (updates.whatsappInstanceUrl) updateData.whatsapp_instance_url = updates.whatsappInstanceUrl;
+    if (updates.settings) updateData.settings = updates.settings;
+    if (updates.assistantId) updateData.assistant_id = updates.assistantId;
+    if (updates.password) updateData.password = updates.password;
+    if (updates.isActive !== undefined) updateData.is_active = updates.isActive;
+
     const { data, error } = await supabase
       .from('clients')
-      .update({
-        name: updates.name,
-        email: updates.email,
-        phone: updates.phone,
-        service_type: updates.serviceType,
-        whatsapp_instance_url: updates.whatsappInstanceUrl,
-        settings: updates.settings,
-        assistant_id: updates.assistantId,
-        password: updates.password,
-        is_active: updates.isActive
-      })
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
@@ -306,7 +300,7 @@ export class SupabaseRealStorage implements IStorage {
     await supabase.from('clients').delete().eq('id', id);
   }
 
-  async listClients(): Promise<Client[]> {
+  async listClients(): Promise<StorageClient[]> {
     const { data, error } = await supabase
       .from('clients')
       .select('*')
@@ -314,7 +308,7 @@ export class SupabaseRealStorage implements IStorage {
       .order('created_at', { ascending: false });
     
     if (error || !data) return [];
-    return data.map(this.mapClientFromSupabase);
+    return data.map(client => this.mapClientFromSupabase(client));
   }
 
   // Professional operations
@@ -362,16 +356,17 @@ export class SupabaseRealStorage implements IStorage {
   }
 
   async updateProfessional(id: string, updates: Partial<InsertProfessional>): Promise<Professional | undefined> {
+    const updateData: any = {};
+    if (updates.name) updateData.name = updates.name;
+    if (updates.email) updateData.email = updates.email;
+    if (updates.phone !== undefined) updateData.phone = updates.phone;
+    if (updates.specialtyId) updateData.specialty_id = updates.specialtyId;
+    if (updates.clientId) updateData.client_id = updates.clientId;
+    if (updates.isActive !== undefined) updateData.is_active = updates.isActive;
+
     const { data, error } = await supabase
       .from('professionals')
-      .update({
-        name: updates.name,
-        email: updates.email,
-        phone: updates.phone,
-        specialty_id: updates.specialtyId,
-        client_id: updates.clientId,
-        is_active: updates.isActive
-      })
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
@@ -426,6 +421,7 @@ export class SupabaseRealStorage implements IStorage {
         name: specialty.name,
         description: specialty.description,
         color: specialty.color || '#3B82F6',
+        client_id: specialty.clientId,
         is_active: specialty.isActive ?? true
       })
       .select()
@@ -469,7 +465,9 @@ export class SupabaseRealStorage implements IStorage {
         description: service.description,
         duration: service.duration,
         price: service.price,
+        category: service.category,
         specialty_id: service.specialtyId,
+        client_id: service.clientId,
         is_active: service.isActive ?? true
       })
       .select()
@@ -527,7 +525,9 @@ export class SupabaseRealStorage implements IStorage {
         client_id: appointment.clientId,
         professional_id: appointment.professionalId,
         service_id: appointment.serviceId,
-        scheduled_at: appointment.scheduledAt.toISOString(),
+        scheduled_at: appointment.scheduledAt?.toISOString(),
+        start_time: appointment.startTime,
+        end_time: appointment.endTime,
         duration: appointment.duration,
         status: appointment.status || 'scheduled',
         notes: appointment.notes
@@ -548,6 +548,8 @@ export class SupabaseRealStorage implements IStorage {
     if (updates.professionalId) updateData.professional_id = updates.professionalId;
     if (updates.serviceId) updateData.service_id = updates.serviceId;
     if (updates.scheduledAt) updateData.scheduled_at = updates.scheduledAt.toISOString();
+    if (updates.startTime) updateData.start_time = updates.startTime;
+    if (updates.endTime) updateData.end_time = updates.endTime;
     if (updates.duration) updateData.duration = updates.duration;
     if (updates.status) updateData.status = updates.status;
     if (updates.notes !== undefined) updateData.notes = updates.notes;
@@ -570,7 +572,7 @@ export class SupabaseRealStorage implements IStorage {
 
   // Customer operations
   async listCustomers(clientId?: string): Promise<Customer[]> {
-    let query = supabase.from('customers').select('*').eq('is_active', true).order('name');
+    let query = supabase.from('customers').select('*').order('name');
 
     if (clientId) {
       query = query.eq('client_id', clientId);
@@ -600,8 +602,9 @@ export class SupabaseRealStorage implements IStorage {
         name: customer.name,
         email: customer.email,
         phone: customer.phone,
-        client_id: customer.clientId,
-        is_active: customer.isActive ?? true
+        cpf_cnpj: customer.cpfCnpj,
+        notes: customer.notes,
+        client_id: customer.clientId
       })
       .select()
       .single();
@@ -614,19 +617,61 @@ export class SupabaseRealStorage implements IStorage {
   }
 
   // Helper methods to map Supabase data to our types
-  private mapClientFromSupabase(data: any): Client {
+  private mapUserFromSupabase(data: any): StorageUser {
     return {
       id: data.id,
       name: data.name,
       email: data.email,
-      phone: data.phone,
+      password: data.password,
+      role: data.role,
+      createdAt: new Date(data.created_at)
+    };
+  }
+
+  private mapSessionFromSupabase(data: any): StorageSession {
+    return {
+      id: data.id,
+      userId: data.user_id,
+      expiresAt: new Date(data.expires_at),
+      createdAt: new Date(data.created_at)
+    };
+  }
+
+  private mapClientFromSupabase(data: any): StorageClient {
+    return {
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone || null,
       createdAt: new Date(data.created_at),
       isActive: data.is_active,
-      serviceType: data.service_type,
-      whatsappInstanceUrl: data.whatsapp_instance_url,
+      serviceType: data.service_type || null,
+      whatsappInstanceUrl: data.whatsapp_instance_url || null,
       settings: data.settings,
-      assistantId: data.assistant_id,
-      password: data.password
+      assistantId: data.assistant_id || null,
+      password: data.password || null,
+      promptIa: data.prompt_ia || null,
+      agentName: data.agent_name || null,
+      plan: 'basic',
+      maxUsers: 5,
+      maxAppointments: 100,
+      maxStorage: 1,
+      customDomain: null,
+      brandingSettings: null,
+      businessHours: null,
+      timezone: 'America/Sao_Paulo',
+      language: 'pt-BR',
+      currency: 'BRL',
+      twoFactorEnabled: false,
+      sessionTimeout: 24,
+      emailNotifications: true,
+      smsNotifications: false,
+      whatsappNotifications: true,
+      autoBackup: true,
+      backupFrequency: 'daily',
+      integrations: null,
+      gdprCompliant: true,
+      dataRetentionDays: 365
     };
   }
 
@@ -649,6 +694,8 @@ export class SupabaseRealStorage implements IStorage {
       name: data.name,
       description: data.description,
       color: data.color,
+      serviceId: data.service_id,
+      clientId: data.client_id,
       isActive: data.is_active,
       createdAt: new Date(data.created_at)
     };
@@ -658,10 +705,12 @@ export class SupabaseRealStorage implements IStorage {
     return {
       id: data.id,
       name: data.name,
+      category: data.category,
       description: data.description,
       duration: data.duration,
       price: data.price,
       specialtyId: data.specialty_id,
+      clientId: data.client_id,
       isActive: data.is_active,
       createdAt: new Date(data.created_at)
     };
@@ -673,7 +722,9 @@ export class SupabaseRealStorage implements IStorage {
       clientId: data.client_id,
       professionalId: data.professional_id,
       serviceId: data.service_id,
-      scheduledAt: new Date(data.scheduled_at),
+      scheduledAt: data.scheduled_at ? new Date(data.scheduled_at) : null,
+      startTime: data.start_time,
+      endTime: data.end_time,
       duration: data.duration,
       status: data.status,
       notes: data.notes,
@@ -688,8 +739,9 @@ export class SupabaseRealStorage implements IStorage {
       name: data.name,
       email: data.email,
       phone: data.phone,
+      cpfCnpj: data.cpf_cnpj,
+      notes: data.notes,
       clientId: data.client_id,
-      isActive: data.is_active,
       createdAt: new Date(data.created_at)
     };
   }
