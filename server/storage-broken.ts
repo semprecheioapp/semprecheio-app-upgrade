@@ -1,3 +1,4 @@
+
 import { users, sessions, clients, type User, type InsertUser, type Session, type Client, type InsertClient } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -81,33 +82,6 @@ export class MemStorage implements IStorage {
 
     this.clients.set(clinicaMBK.id, clinicaMBK);
   }
-
-  private async initializeTestUsers() {
-    const hashedPassword = await bcrypt.hash("123456", 10);
-    
-    const superAdmin: User = {
-      id: 1,
-      name: "Super Administrador",
-      email: "super@admin.com",
-      password: hashedPassword,
-      role: "super_admin",
-      createdAt: new Date(),
-    };
-    
-    const admin: User = {
-      id: 2,
-      name: "Administrador",
-      email: "admin@salon.com",
-      password: hashedPassword,
-      role: "admin",
-      createdAt: new Date(),
-    };
-    
-    this.users.set(superAdmin.id, superAdmin);
-    this.users.set(admin.id, admin);
-  }
-
-
 
   private async initializeTestUsers() {
     const hashedPassword = await bcrypt.hash("123456", 10);
@@ -229,12 +203,34 @@ export class MemStorage implements IStorage {
       email: insertClient.email,
       phone: insertClient.phone || null,
       createdAt: new Date(),
-      isActive: true,
+      isActive: insertClient.isActive ?? true,
       serviceType: insertClient.serviceType || null,
       whatsappInstanceUrl: insertClient.whatsappInstanceUrl || null,
       settings: insertClient.settings || null,
       assistantId: insertClient.assistantId || null,
       password: hashedPassword,
+      promptIa: insertClient.promptIa || null,
+      agentName: insertClient.agentName || null,
+      plan: insertClient.plan || 'basic',
+      maxUsers: insertClient.maxUsers || 5,
+      maxAppointments: insertClient.maxAppointments || 100,
+      maxStorage: insertClient.maxStorage || 1,
+      customDomain: insertClient.customDomain || null,
+      brandingSettings: insertClient.brandingSettings || null,
+      businessHours: insertClient.businessHours || null,
+      timezone: insertClient.timezone || 'America/Sao_Paulo',
+      language: insertClient.language || 'pt-BR',
+      currency: insertClient.currency || 'BRL',
+      twoFactorEnabled: insertClient.twoFactorEnabled || false,
+      sessionTimeout: insertClient.sessionTimeout || 24,
+      emailNotifications: insertClient.emailNotifications ?? true,
+      smsNotifications: insertClient.smsNotifications || false,
+      whatsappNotifications: insertClient.whatsappNotifications ?? true,
+      autoBackup: insertClient.autoBackup ?? true,
+      backupFrequency: insertClient.backupFrequency || 'daily',
+      integrations: insertClient.integrations || null,
+      gdprCompliant: insertClient.gdprCompliant ?? true,
+      dataRetentionDays: insertClient.dataRetentionDays || 365
     };
     
     this.clients.set(id, client);
