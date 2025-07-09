@@ -54,7 +54,29 @@ export class MemStorage implements IStorage {
       whatsappInstanceUrl: 'megacode-MTflBsUXacp',
       settings: null,
       assistantId: 'asst_z5VR0QuThXhA9YR9W1RoqL7q',
-      password: 'senha123'
+      password: 'senha123',
+      promptIa: null,
+      agentName: null,
+      plan: 'basic',
+      maxUsers: 5,
+      maxAppointments: 100,
+      maxStorage: 1,
+      customDomain: null,
+      brandingSettings: null,
+      businessHours: null,
+      timezone: 'America/Sao_Paulo',
+      language: 'pt-BR',
+      currency: 'BRL',
+      twoFactorEnabled: false,
+      sessionTimeout: 24,
+      emailNotifications: true,
+      smsNotifications: false,
+      whatsappNotifications: true,
+      autoBackup: true,
+      backupFrequency: 'daily',
+      integrations: null,
+      gdprCompliant: true,
+      dataRetentionDays: 365
     };
 
     this.clients.set(clinicaMBK.id, clinicaMBK);
@@ -95,16 +117,16 @@ export class MemStorage implements IStorage {
       name: "Super Administrador",
       email: "super@admin.com",
       password: hashedPassword,
-      role: "Super Admin",
+      role: "super_admin",
       createdAt: new Date(),
     };
-    
+
     const admin: User = {
       id: this.currentId++,
       name: "Administrador",
-      email: "admin@salon.com", 
+      email: "admin@salon.com",
       password: hashedPassword,
-      role: "Admin",
+      role: "admin",
       createdAt: new Date(),
     };
     

@@ -9,10 +9,12 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth";
 import { MessageCircle, Globe, Plus, Edit, Trash2, Power, PowerOff, Key } from "lucide-react";
 import type { Connection } from "@shared/schema";
 
 export default function WhatsAppChannels() {
+  const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [editingChannel, setEditingChannel] = useState<Connection | null>(null);
   const [formData, setFormData] = useState({
@@ -20,6 +22,7 @@ export default function WhatsAppChannels() {
     token: "",
     host: "",
     isActive: true,
+    clientId: "",
   });
 
   const { toast } = useToast();
@@ -173,7 +176,10 @@ export default function WhatsAppChannels() {
         data: formData,
       });
     } else {
-      createChannelMutation.mutate(formData);
+      createChannelMutation.mutate({
+        ...formData,
+        clientId: user?.clientId || user?.id || ""
+      });
     }
   };
 
