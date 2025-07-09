@@ -1,12 +1,12 @@
 
-import { IStorage } from "./interfaces";
-import { UserOperations } from "./user-operations";
-import { ClientOperations } from "./client-operations";
-import { ProfessionalOperations } from "./professional-operations";
-import { ExtendedOperations } from "./extended-operations";
-import { StorageUser, InsertStorageUser, StorageSession, StorageClient, InsertStorageClient } from "../types/storage-types";
+import { StorageUser, StorageClient, InsertStorageUser, InsertStorageClient } from '../types/storage-types';
+import { UserOperations } from './user-operations';
+import { ClientOperations } from './client-operations';
+import { ProfessionalOperations } from './professional-operations';
+import { ExtendedOperations } from './extended-operations';
+import { StorageInterface } from './interfaces';
 
-export class MemStorage implements IStorage {
+export class MemoryStorage implements StorageInterface {
   private userOps: UserOperations;
   private clientOps: ClientOperations;
   private professionalOps: ProfessionalOperations;
@@ -20,288 +20,260 @@ export class MemStorage implements IStorage {
   }
 
   // User operations
-  async getUser(id: number): Promise<StorageUser | undefined> {
-    return this.userOps.getUser(id);
+  async createUser(userData: InsertStorageUser): Promise<StorageUser> {
+    return this.userOps.createUser(userData);
   }
 
-  async getUserByEmail(email: string): Promise<StorageUser | undefined> {
+  async getUserById(id: number): Promise<StorageUser | null> {
+    return this.userOps.getUserById(id);
+  }
+
+  async getUserByEmail(email: string): Promise<StorageUser | null> {
     return this.userOps.getUserByEmail(email);
   }
 
-  async createUser(user: InsertStorageUser): Promise<StorageUser> {
-    return this.userOps.createUser(user);
+  async validateUserCredentials(email: string, password: string): Promise<StorageUser | null> {
+    return this.userOps.validateUserCredentials(email, password);
   }
 
-  async validateUser(email: string, password: string): Promise<StorageUser | null> {
-    return this.userOps.validateUser(email, password);
+  async updateUser(id: number, updates: Partial<StorageUser>): Promise<StorageUser | null> {
+    return this.userOps.updateUser(id, updates);
   }
 
-  async createSession(userId: number, expiresAt: Date): Promise<StorageSession> {
-    return this.userOps.createSession(userId, expiresAt);
+  async deleteUser(id: number): Promise<boolean> {
+    return this.userOps.deleteUser(id);
   }
 
-  async getSession(sessionId: string): Promise<StorageSession | undefined> {
-    return this.userOps.getSession(sessionId);
-  }
-
-  async deleteSession(sessionId: string): Promise<void> {
-    return this.userOps.deleteSession(sessionId);
-  }
-
-  async getUserBySessionId(sessionId: string): Promise<StorageUser | undefined> {
-    return this.userOps.getUserBySessionId(sessionId);
+  async getUsers(): Promise<StorageUser[]> {
+    return this.userOps.getUsers();
   }
 
   // Client operations
-  async getClient(id: string): Promise<StorageClient | undefined> {
-    return this.clientOps.getClient(id);
+  async createClient(clientData: InsertStorageClient): Promise<StorageClient> {
+    return this.clientOps.createClient(clientData);
   }
 
-  async getClientByEmail(email: string): Promise<StorageClient | undefined> {
+  async getClientById(id: string): Promise<StorageClient | null> {
+    return this.clientOps.getClientById(id);
+  }
+
+  async getClientByEmail(email: string): Promise<StorageClient | null> {
     return this.clientOps.getClientByEmail(email);
   }
 
-  async createClient(client: InsertStorageClient): Promise<StorageClient> {
-    return this.clientOps.createClient(client);
-  }
-
-  async validateClient(email: string, password: string): Promise<StorageClient | null> {
-    return this.clientOps.validateClient(email, password);
-  }
-
-  async updateClient(id: string, updates: Partial<InsertStorageClient>): Promise<StorageClient | undefined> {
+  async updateClient(id: string, updates: Partial<StorageClient>): Promise<StorageClient | null> {
     return this.clientOps.updateClient(id, updates);
   }
 
-  async deleteClient(id: string): Promise<void> {
+  async deleteClient(id: string): Promise<boolean> {
     return this.clientOps.deleteClient(id);
   }
 
-  async listClients(): Promise<StorageClient[]> {
-    return this.clientOps.listClients();
+  async getClients(): Promise<StorageClient[]> {
+    return this.clientOps.getClients();
   }
 
-  // Professional operations
-  async getProfessional(id: string): Promise<any | undefined> {
-    return this.professionalOps.getProfessional(id);
+  // Session operations
+  async createUserSession(userId: number): Promise<{ id: string; userId: number; expiresAt: Date }> {
+    return this.userOps.createUserSession(userId);
   }
 
-  async getProfessionalByEmail(email: string): Promise<any | undefined> {
-    return this.professionalOps.getProfessionalByEmail(email);
+  async getSession(sessionId: string): Promise<{ id: string; userId: number; expiresAt: Date } | null> {
+    return this.userOps.getSession(sessionId);
   }
 
-  async createProfessional(professional: any): Promise<any> {
-    return this.professionalOps.createProfessional(professional);
+  async deleteSession(sessionId: string): Promise<boolean> {
+    return this.userOps.deleteSession(sessionId);
   }
 
-  async updateProfessional(id: string, updates: any): Promise<any | undefined> {
+  // Extended operations - delegate to appropriate operations class
+  async createProfessional(data: any): Promise<any> {
+    return this.professionalOps.createProfessional(data);
+  }
+
+  async getProfessionalById(id: string): Promise<any> {
+    return this.professionalOps.getProfessionalById(id);
+  }
+
+  async updateProfessional(id: string, updates: any): Promise<any> {
     return this.professionalOps.updateProfessional(id, updates);
   }
 
-  async deleteProfessional(id: string): Promise<void> {
+  async deleteProfessional(id: string): Promise<boolean> {
     return this.professionalOps.deleteProfessional(id);
   }
 
-  async listProfessionals(clientId: string): Promise<any[]> {
-    return this.professionalOps.listProfessionals(clientId);
+  async getProfessionals(): Promise<any[]> {
+    return this.professionalOps.getProfessionals();
   }
 
-  async listProfessionalsByClient(clientId: string): Promise<any[]> {
-    return this.professionalOps.listProfessionalsByClient(clientId);
+  async createSpecialty(data: any): Promise<any> {
+    return this.professionalOps.createSpecialty(data);
   }
 
-  // Extended operations (delegated to ExtendedOperations)
-  async getSpecialty(id: string): Promise<any | undefined> {
-    return this.extendedOps.getSpecialty(id);
+  async getSpecialtyById(id: string): Promise<any> {
+    return this.professionalOps.getSpecialtyById(id);
   }
 
-  async createSpecialty(specialty: any): Promise<any> {
-    return this.extendedOps.createSpecialty(specialty);
+  async updateSpecialty(id: string, updates: any): Promise<any> {
+    return this.professionalOps.updateSpecialty(id, updates);
   }
 
-  async updateSpecialty(id: string, updates: any): Promise<any | undefined> {
-    return this.extendedOps.updateSpecialty(id, updates);
+  async deleteSpecialty(id: string): Promise<boolean> {
+    return this.professionalOps.deleteSpecialty(id);
   }
 
-  async deleteSpecialty(id: string): Promise<void> {
-    return this.extendedOps.deleteSpecialty(id);
+  async getSpecialties(): Promise<any[]> {
+    return this.professionalOps.getSpecialties();
   }
 
-  async listSpecialties(clientId: string): Promise<any[]> {
-    return this.extendedOps.listSpecialties(clientId);
+  async createService(data: any): Promise<any> {
+    return this.professionalOps.createService(data);
   }
 
-  async listSpecialtiesByClient(clientId: string): Promise<any[]> {
-    return this.extendedOps.listSpecialtiesByClient(clientId);
+  async getServiceById(id: string): Promise<any> {
+    return this.professionalOps.getServiceById(id);
   }
 
-  async getService(id: string): Promise<any | undefined> {
-    return this.extendedOps.getService(id);
+  async updateService(id: string, updates: any): Promise<any> {
+    return this.professionalOps.updateService(id, updates);
   }
 
-  async createService(service: any): Promise<any> {
-    return this.extendedOps.createService(service);
+  async deleteService(id: string): Promise<boolean> {
+    return this.professionalOps.deleteService(id);
   }
 
-  async updateService(id: string, updates: any): Promise<any | undefined> {
-    return this.extendedOps.updateService(id, updates);
+  async getServices(): Promise<any[]> {
+    return this.professionalOps.getServices();
   }
 
-  async deleteService(id: string): Promise<void> {
-    return this.extendedOps.deleteService(id);
+  // Extended operations delegation
+  async createAppointment(data: any): Promise<any> {
+    return this.extendedOps.createAppointment(data);
   }
 
-  async listServices(clientId: string): Promise<any[]> {
-    return this.extendedOps.listServices(clientId);
+  async getAppointmentById(id: string): Promise<any> {
+    return this.extendedOps.getAppointmentById(id);
   }
 
-  async listServicesByClient(clientId: string): Promise<any[]> {
-    return this.extendedOps.listServicesByClient(clientId);
-  }
-
-  async getAppointment(id: string): Promise<any | undefined> {
-    return this.extendedOps.getAppointment(id);
-  }
-
-  async createAppointment(appointment: any): Promise<any> {
-    return this.extendedOps.createAppointment(appointment);
-  }
-
-  async updateAppointment(id: string, updates: any): Promise<any | undefined> {
+  async updateAppointment(id: string, updates: any): Promise<any> {
     return this.extendedOps.updateAppointment(id, updates);
   }
 
-  async deleteAppointment(id: string): Promise<void> {
+  async deleteAppointment(id: string): Promise<boolean> {
     return this.extendedOps.deleteAppointment(id);
   }
 
-  async cancelAppointment(id: string): Promise<void> {
-    return this.extendedOps.cancelAppointment(id);
+  async getAppointments(): Promise<any[]> {
+    return this.extendedOps.getAppointments();
   }
 
-  async listAppointments(clientId: string): Promise<any[]> {
-    return this.extendedOps.listAppointments(clientId);
+  async createCustomer(data: any): Promise<any> {
+    return this.extendedOps.createCustomer(data);
   }
 
-  async getCustomer(id: string): Promise<any | undefined> {
-    return this.extendedOps.getCustomer(id);
+  async getCustomerById(id: string): Promise<any> {
+    return this.extendedOps.getCustomerById(id);
   }
 
-  async createCustomer(customer: any): Promise<any> {
-    return this.extendedOps.createCustomer(customer);
-  }
-
-  async updateCustomer(id: string, updates: any): Promise<any | undefined> {
+  async updateCustomer(id: string, updates: any): Promise<any> {
     return this.extendedOps.updateCustomer(id, updates);
   }
 
-  async deleteCustomer(id: string): Promise<void> {
+  async deleteCustomer(id: string): Promise<boolean> {
     return this.extendedOps.deleteCustomer(id);
   }
 
-  async listCustomers(clientId: string): Promise<any[]> {
-    return this.extendedOps.listCustomers(clientId);
+  async getCustomers(): Promise<any[]> {
+    return this.extendedOps.getCustomers();
   }
 
-  async getConnection(id: number): Promise<any | undefined> {
-    return this.extendedOps.getConnection(id);
+  async createConnection(data: any): Promise<any> {
+    return this.extendedOps.createConnection(data);
   }
 
-  async createConnection(connection: any): Promise<any> {
-    return this.extendedOps.createConnection(connection);
+  async getConnectionById(id: string): Promise<any> {
+    return this.extendedOps.getConnectionById(id);
   }
 
-  async updateConnection(id: number, updates: any): Promise<any | undefined> {
+  async updateConnection(id: string, updates: any): Promise<any> {
     return this.extendedOps.updateConnection(id, updates);
   }
 
-  async deleteConnection(id: number): Promise<void> {
+  async deleteConnection(id: string): Promise<boolean> {
     return this.extendedOps.deleteConnection(id);
   }
 
-  async listConnections(clientId: string): Promise<any[]> {
-    return this.extendedOps.listConnections(clientId);
+  async getConnections(): Promise<any[]> {
+    return this.extendedOps.getConnections();
   }
 
-  async validateConnection(connectionId: number): Promise<boolean> {
-    return this.extendedOps.validateConnection(connectionId);
+  async createAvailability(data: any): Promise<any> {
+    return this.extendedOps.createAvailability(data);
   }
 
-  async getClientByWhatsappInstance(instanceUrl: string): Promise<StorageClient | undefined> {
-    return this.extendedOps.getClientByWhatsappInstance(instanceUrl);
+  async getAvailabilityById(id: string): Promise<any> {
+    return this.extendedOps.getAvailabilityById(id);
   }
 
-  async getProfessionalAvailability(id: string): Promise<any | undefined> {
-    return this.extendedOps.getProfessionalAvailability(id);
+  async updateAvailability(id: string, updates: any): Promise<any> {
+    return this.extendedOps.updateAvailability(id, updates);
   }
 
-  async createProfessionalAvailability(availability: any): Promise<any> {
-    return this.extendedOps.createProfessionalAvailability(availability);
+  async deleteAvailability(id: string): Promise<boolean> {
+    return this.extendedOps.deleteAvailability(id);
   }
 
-  async updateProfessionalAvailability(id: string, updates: any): Promise<any | undefined> {
-    return this.extendedOps.updateProfessionalAvailability(id, updates);
+  async getAvailabilities(): Promise<any[]> {
+    return this.extendedOps.getAvailabilities();
   }
 
-  async deleteProfessionalAvailability(id: string): Promise<void> {
-    return this.extendedOps.deleteProfessionalAvailability(id);
+  async createBackup(data: any): Promise<any> {
+    return this.extendedOps.createBackup(data);
   }
 
-  async listProfessionalAvailability(professionalId: string): Promise<any[]> {
-    return this.extendedOps.listProfessionalAvailability(professionalId);
+  async getBackupById(id: string): Promise<any> {
+    return this.extendedOps.getBackupById(id);
   }
 
-  async listProfessionalAvailabilityByClient(clientId: string): Promise<any[]> {
-    return this.extendedOps.listProfessionalAvailabilityByClient(clientId);
+  async updateBackup(id: string, updates: any): Promise<any> {
+    return this.extendedOps.updateBackup(id, updates);
   }
 
-  async updateMonthlyAvailability(data: any): Promise<void> {
-    return this.extendedOps.updateMonthlyAvailability(data);
+  async deleteBackup(id: string): Promise<boolean> {
+    return this.extendedOps.deleteBackup(id);
   }
 
-  async generateNextMonthAvailability(data: any): Promise<void> {
-    return this.extendedOps.generateNextMonthAvailability(data);
+  async getBackups(): Promise<any[]> {
+    return this.extendedOps.getBackups();
   }
 
-  async createBackup(clientId: string): Promise<any> {
-    return this.extendedOps.createBackup(clientId);
+  async createSubscription(data: any): Promise<any> {
+    return this.extendedOps.createSubscription(data);
   }
 
-  async generateSQLExport(clientId: string): Promise<string> {
-    return this.extendedOps.generateSQLExport(clientId);
+  async getSubscriptionById(id: string): Promise<any> {
+    return this.extendedOps.getSubscriptionById(id);
   }
 
-  async listSubscriptionPlans(): Promise<any[]> {
-    return this.extendedOps.listSubscriptionPlans();
+  async updateSubscription(id: string, updates: any): Promise<any> {
+    return this.extendedOps.updateSubscription(id, updates);
   }
 
-  async getSubscriptionPlan(id: string): Promise<any | undefined> {
-    return this.extendedOps.getSubscriptionPlan(id);
+  async deleteSubscription(id: string): Promise<boolean> {
+    return this.extendedOps.deleteSubscription(id);
   }
 
-  async createSubscriptionPlan(plan: any): Promise<any> {
-    return this.extendedOps.createSubscriptionPlan(plan);
-  }
-
-  async listSubscriptions(clientId: string): Promise<any[]> {
-    return this.extendedOps.listSubscriptions(clientId);
-  }
-
-  async getSubscription(id: string): Promise<any | undefined> {
-    return this.extendedOps.getSubscription(id);
-  }
-
-  async createSubscription(subscription: any): Promise<any> {
-    return this.extendedOps.createSubscription(subscription);
-  }
-
-  async listInvoices(clientId: string): Promise<any[]> {
-    return this.extendedOps.listInvoices(clientId);
-  }
-
-  async listPayments(clientId: string): Promise<any[]> {
-    return this.extendedOps.listPayments(clientId);
+  async getSubscriptions(): Promise<any[]> {
+    return this.extendedOps.getSubscriptions();
   }
 }
 
-export const storage = new MemStorage();
+// Create and export singleton instance
+const storage = new MemoryStorage();
+
+export function getStorage(): MemoryStorage {
+  return storage;
+}
+
+export { storage };

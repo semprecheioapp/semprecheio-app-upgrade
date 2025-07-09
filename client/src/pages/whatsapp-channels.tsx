@@ -37,7 +37,7 @@ export default function WhatsAppChannels() {
     token: '',
     host: '',
     isActive: true,
-    clientId: '' // Initialize with empty string
+    clientId: ''
   });
 
   const [editingConnection, setEditingConnection] = useState<ConnectionForm>({
@@ -45,7 +45,7 @@ export default function WhatsAppChannels() {
     token: '',
     host: '',
     isActive: false,
-    clientId: '' // Initialize with empty string
+    clientId: ''
   });
 
   const { toast } = useToast();
@@ -174,8 +174,8 @@ export default function WhatsAppChannels() {
 
   useEffect(() => {
     if (user) {
-      // Assuming user has a clientId property or we need to fetch it
-      const clientId = user.id; // Use user.id as clientId for now
+      // Convert user.id to string to match clientId type
+      const clientId = String(user.id);
       setNewConnection(prev => ({ ...prev, clientId }));
       setEditingConnection(prev => ({ ...prev, clientId }));
     }
@@ -187,6 +187,7 @@ export default function WhatsAppChannels() {
       token: "",
       host: "",
       isActive: true,
+      clientId: "",
     });
   };
 
@@ -210,7 +211,7 @@ export default function WhatsAppChannels() {
     } else {
       createChannelMutation.mutate({
         ...formData,
-        clientId: user?.clientId || user?.id || ""
+        clientId: user?.id ? String(user.id) : ""
       });
     }
   };
@@ -222,6 +223,7 @@ export default function WhatsAppChannels() {
       token: channel.token,
       host: channel.host,
       isActive: channel.isActive,
+      clientId: channel.clientId || "",
     });
     setShowModal(true);
   };

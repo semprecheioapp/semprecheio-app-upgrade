@@ -5,7 +5,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { initialEvents } from './event-utils';
 import { Button } from "@/components/ui/button"
-import { CalendarIcon, PlusIcon, PencilIcon, EyeIcon, TrashIcon } from '@radix-ui/react-icons'
+import { CalendarIcon, PlusIcon, PencilIcon, EyeIcon, TrashIcon } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +21,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -29,8 +30,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/components/ui/use-toast"
-import { toast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -77,6 +77,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { ChevronDown } from "lucide-react"
 
 interface AgendaEvent {
   id: string;
@@ -164,6 +165,7 @@ const Agenda: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const { toast } = useToast();
 
   const mapEventToAppointment = (event: AgendaEvent): Appointment => {
     return {
@@ -305,12 +307,6 @@ const Agenda: React.FC = () => {
           events={events}
           eventClick={handleEventClick}
           eventsSet={handleEvents}
-          // you can update a remote database when these fire:
-          /*
-          eventAdd={function(){}}
-          eventChange={function(){}}
-          eventRemove={function(){}}
-          */
         />
       </div>
 
@@ -371,5 +367,3 @@ const Agenda: React.FC = () => {
 };
 
 export default Agenda;
-
-import { ChevronDown } from "lucide-react"
